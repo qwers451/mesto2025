@@ -15,16 +15,8 @@
 ## Стек технологий
 - **HTML5**
 - **CSS3**
-  - Flexbox
-  - Grid Layout
-  - Positioning
-  - Adaptive UI
-  - Media Queries
   - Методология БЭМ
-  - Файловая структура Nested БЭМ
 - **JavaScript**
-  - Стиль CamelCase
-  - Объектно-ориентированное программирование
   - Промисы (Promise)
   - Асинхронность и оптимизация
   - API (Application Programming Interface)
