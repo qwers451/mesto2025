@@ -5,13 +5,13 @@ import { enableValidation, checkValidation } from './validate.js';
 import { openModal, closeModal } from './modal.js';
 
 import {
-  getInitialCards,
-  getUserInfo,
-  changeUserInfo,
-  changeAvatar,
-  postNewCard,
-  deleteCard,
-  toggleLikeCard
+    getInitialCards,
+    getUserInfo,
+    changeUserInfo,
+    changeAvatar,
+    postNewCard,
+    deleteCard,
+    toggleLikeCard
 } from './api.js';
 
 const profileName = document.querySelector('.profile__title');
@@ -46,184 +46,183 @@ const avatarFormButton = avatarFormElement.querySelector('.popup__button');
 const avatarLinkInput = avatarFormElement.querySelector('.popup__input_type_url');
 
 placesList.addEventListener('click', evt => {
-  if (evt.target.classList.contains('card__image')) {
-    image.src = ""
-    image.src = evt.target.src
-    caption.textContent = evt.target.alt
-    openModal(imagePopup)
-  } else if (evt.target.classList.contains('card__like-button')) {
-    evt.target.disabled = true;
-    const cardItem = evt.target.closest('.places__item');
+    if (evt.target.classList.contains('card__image')) {
+        image.src = ""
+        image.src = evt.target.src
+        caption.textContent = evt.target.alt
+        openModal(imagePopup)
+    } else if (evt.target.classList.contains('card__like-button')) {
+        evt.target.disabled = true;
+        const cardItem = evt.target.closest('.places__item');
 
-    let _method;
-    if (evt.target.classList.contains('card__like-button_is-active')) {
-      _method = "DELETE";
-    } else {
-      _method = "PUT";
+        let _method;
+        if (evt.target.classList.contains('card__like-button_is-active')) {
+            _method = "DELETE";
+        } else {
+            _method = "PUT";
+        }
+
+        toggleLikeCard(cardItem.id, _method)
+            .then(cardInfo => {
+                const newCardItem = updateCardLikes(cardItem, cardInfo.likes.length);
+                cardItem.replaceWith(newCardItem);
+                evt.target.classList.toggle('card__like-button_is-active')
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            .finally(() => {
+                evt.target.disabled = false;
+            });
+    } else if (evt.target.classList.contains('card__delete-button')) {
+        evt.target.disabled = true;
+        const cardItem = evt.target.closest('.places__item');
+
+        deleteCard(cardItem.id)
+            .then(res => {
+                cardItem.remove();
+            })
+            .catch(err => {
+                console.log(err);
+            })
     }
-
-    toggleLikeCard(cardItem.id, _method)
-      .then(cardInfo => {
-        const newCardItem = updateCardLikes(cardItem, cardInfo.likes.length);
-        cardItem.replaceWith(newCardItem);
-        evt.target.classList.toggle('card__like-button_is-active')
-      })
-      .catch(err => {
-        console.log(err);
-      })
-      .finally(() => {
-        evt.target.disabled = false;
-      });
-  } else if (evt.target.classList.contains('card__delete-button')) {
-    evt.target.disabled = true;
-    const cardItem = evt.target.closest('.places__item');
-
-    deleteCard(cardItem.id)
-      .then(res => {
-        cardItem.remove();
-      })
-      .catch(err => {
-        console.log(err);
-      })
-  }
 })
 
 let userId;
 Promise.all([getUserInfo(), getInitialCards()])
-  .then(([userInfo, cards]) => {
-    profileName.textContent = userInfo.name;
-    profileAbout.textContent = userInfo.about;
-    profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`;
-    userId = userInfo._id;
+    .then(([userInfo, cards]) => {
+        profileName.textContent = userInfo.name;
+        profileAbout.textContent = userInfo.about;
+        profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`;
+        userId = userInfo._id;
 
-    cards.forEach(cardInfo => {
-      const link = cardInfo.link;
-      const name = cardInfo.name;
-      const likeCount = cardInfo.likes.length;
-      const _id = cardInfo._id;
-      const newCard = createCard(link, name, likeCount, _id);
-      if (cardInfo.likes.some(user => user._id === userId)) {
-        newCard.querySelector('.card__like-button').classList.add('card__like-button_is-active');
-      }
-      if (cardInfo.owner._id !== userId) {
-        newCard.querySelector('.card__delete-button').classList.add('card__delete-button_diactivate');
-      }
-      placesList.append(newCard);
+        cards.forEach(cardInfo => {
+            const link = cardInfo.link;
+            const name = cardInfo.name;
+            const likeCount = cardInfo.likes.length;
+            const _id = cardInfo._id;
+            const newCard = createCard(link, name, likeCount, _id);
+            if (cardInfo.likes.some(user => user._id === userId)) {
+                newCard.querySelector('.card__like-button').classList.add('card__like-button_is-active');
+            }
+            if (cardInfo.owner._id !== userId) {
+                newCard.querySelector('.card__delete-button').classList.add('card__delete-button_diactivate');
+            }
+            placesList.append(newCard);
+        });
+    })
+    .catch(err => {
+        console.log(err);
     });
-  })
-  .catch(err => {
-    console.log(err);
-  });
 
 profileAvatar.addEventListener('click', event => {
 
-  avatarLinkInput.value = profileAvatar.style.backgroundImage.slice(5, -2);
+    avatarLinkInput.value = profileAvatar.style.backgroundImage.slice(5, -2);
 
-  checkValidation(avatarFormElement, validationSettings)
-  openModal(avatarFormPopup)
+    checkValidation(avatarFormElement, validationSettings)
+    openModal(avatarFormPopup)
 })
 
 function handleAvatarFormSubmit(evt) {
-  evt.preventDefault()
+    evt.preventDefault();
 
-  avatarFormButton.textContent = "Сохранение...";
-  const body = {
-    avatar: avatarLinkInput.value
-  };
-  // запрос на изменение аватарки
-  changeAvatar(body)
-    .then(userInfo => {
-      profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`;
-    })
-    .catch(err => {
-      console.log(err);
-    })
-    .finally(() => {
-      closeModal(avatarFormPopup);
-      avatarFormButton.textContent = "Сохранить";
-    });
+    avatarFormButton.textContent = "Сохранение...";
+    const body = {
+        avatar: avatarLinkInput.value
+    };
+    // запрос на изменение аватарки
+    changeAvatar(body)
+        .then(userInfo => {
+            profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`;
+            closeModal(avatarFormPopup); // Закрываем поп-ап только после успешного ответа
+        })
+        .catch(err => {
+            console.log(err);
+        })
+        .finally(() => {
+            avatarFormButton.textContent = "Сохранить";
+        });
 }
 
 avatarFormPopup.addEventListener('submit', handleAvatarFormSubmit)
 
 profileEditButton.addEventListener('click', event => {
 
-  nameInput.value = profileName.textContent
-  aboutInput.value = profileAbout.textContent
+    nameInput.value = profileName.textContent
+    aboutInput.value = profileAbout.textContent
 
-  checkValidation(profileFormElement, validationSettings)
-  openModal(profileFormPopup)
+    checkValidation(profileFormElement, validationSettings)
+    openModal(profileFormPopup)
 })
 
 function handleProfileFormSubmit(evt) {
-  evt.preventDefault()
+    evt.preventDefault();
 
-  profileFormButton.textContent = "Сохранение...";
-  const body = {
-    name: nameInput.value,
-    about: aboutInput.value
-  };
+    profileFormButton.textContent = "Сохранение...";
+    const body = {
+        name: nameInput.value,
+        about: aboutInput.value
+    };
 
-  changeUserInfo(body)
-    .then(userInfo => {
-      profileName.textContent = userInfo.name;
-      profileAbout.textContent = userInfo.about;
-    })
-    .catch(err => {
-      console.log(err);
-    })
-    .finally(() => {
-      closeModal(profileFormPopup);
-      profileFormButton.textContent = "Сохранить";
-    });
+    changeUserInfo(body)
+        .then(userInfo => {
+            profileName.textContent = userInfo.name;
+            profileAbout.textContent = userInfo.about;
+            closeModal(profileFormPopup); // Закрываем поп-ап только после успешного ответа
+        })
+        .catch(err => {
+            console.log(err);
+        })
+        .finally(() => {
+            profileFormButton.textContent = "Сохранить";
+        });
 }
 
 profileFormElement.addEventListener('submit', handleProfileFormSubmit)
 
 addCardButton.addEventListener('click', () => {
 
-  cardLinkInput.value = ''
-  cardNameInput.value = ''
+    cardLinkInput.value = ''
+    cardNameInput.value = ''
 
-  checkValidation(cardFormElement, validationSettings)
-  openModal(cardFormPopup)
+    checkValidation(cardFormElement, validationSettings)
+    openModal(cardFormPopup)
 })
 
 function handleCardFormSubmit(evt) {
-  evt.preventDefault()
-  cardFormButton.textContent = "Создание...";
-  const body = {
-    name: cardNameInput.value,
-    link: cardLinkInput.value
-  };
+    evt.preventDefault();
+    cardFormButton.textContent = "Сохранение...";
+    const body = {
+        name: cardNameInput.value,
+        link: cardLinkInput.value
+    };
 
-  postNewCard(body)
-    .then(cardInfo => {
-      const link = cardInfo.link;
-      const name = cardInfo.name;
-      const likeCount = cardInfo.likes.length;
-      const _id = cardInfo._id;
-      const newCard = createCard(link, name, likeCount, _id);
-      placesList.prepend(newCard);
-    })
-    .catch(err => {
-      console.log(err);
-    })
-    .finally(() => {
-      closeModal(cardFormPopup);
-      cardFormButton.textContent = "Создать";
-    });
+    postNewCard(body)
+        .then(cardInfo => {
+            const link = cardInfo.link;
+            const name = cardInfo.name;
+            const likeCount = cardInfo.likes.length;
+            const _id = cardInfo._id;
+            const newCard = createCard(link, name, likeCount, _id);
+            placesList.prepend(newCard);
+            closeModal(cardFormPopup); // Закрываем поп-ап только после успешного ответа
+        })
+        .catch(err => {
+            console.log(err);
+        })
+        .finally(() => {
+            cardFormButton.textContent = "Сохранить";
+        });
 }
-
 cardFormElement.addEventListener('submit', handleCardFormSubmit)
 
 const validationSettings = {
-  formSelector: '.popup__form',
-  inputSelector: '.popup__input',
-  submitButtonSelector: '.popup__button',
-  inactiveButtonClass: 'popup__button_disabled',
-  inputErrorClass: 'popup__input_type_error',
-  errorClass: 'popup__error_visible'
+    formSelector: '.popup__form',
+    inputSelector: '.popup__input',
+    submitButtonSelector: '.popup__button',
+    inactiveButtonClass: 'popup__button_disabled',
+    inputErrorClass: 'popup__input_type_error',
+    errorClass: 'popup__error_visible'
 }
 
 enableValidation(validationSettings)
